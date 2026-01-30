@@ -1,0 +1,21 @@
+# Compiled Java Class Files
+*.class
+
+# Log files
+*.log
+
+# VS Code specific files
+.vscode/
+*.code-workspace
+
+# Local configuration and credentials
+# (Good for keeping your DB passwords off GitHub)
+config.properties
+
+# MySQL Connector / External Libraries
+# Usually, you don't push JARs; you'd list them in the README
+# lib/*.jar
+
+# Operating System files
+.DS_Store
+Thumbs.db
