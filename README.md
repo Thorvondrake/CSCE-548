@@ -1,35 +1,27 @@
-Project: The Nocturne Archive
+# Nocturne Archive: Rare Book Inventory System
+**CSCE 548 - Software Engineering Project 2**
 
-Developer: Conner Wiley Course: CSCE - 548
-Description
+## Project Overview
+The Nocturne Archive is a multi-tiered Java application designed to manage rare book inventories and sales logs. It utilizes a professional service-oriented architecture to ensure separation of concerns between the user interface, business logic, and data persistence.
 
-A professional-grade Relational Database and Data Access Layer (DAL) designed for a high-end rare book dealer. The system distinguishes between a literary "Work" and a "Physical Copy" to track provenance, condition, and value.
-Tech Stack
+## Technical Architecture
+This project implements a classic 3-tier architectural model:
+* **Presentation Layer (`App.java`):** A console-based interface that invokes the Service Layer to perform CRUD operations.
+* **Service Layer (`BookService.java`):** Acts as the primary interface for external consumers, delegating requests to the underlying business logic.
+* **Business Layer (`BookBusinessLogic.java`):** Implements domain-specific validation rules and logic (e.g., price validation).
+* **Data Access Layer (`DatabaseManager.java`):** Manages low-level JDBC connections and SQL execution against a MySQL database.
 
-    Database: MySQL 8.0
+## Cloud Deployment & Hosting
+To model professional development practices, the service is containerized and hosted in the cloud:
+* **Hosting Platform:** Render (using Docker for container orchestration).
+* **Database Provider:** Aiven Managed MySQL (Cloud-hosted).
+* **CI/CD:** Continuous deployment via GitHub integration.
 
-    Language: Java
+## Environment Configuration
+The application is configured to be environment-agnostic using system variables:
+* `DB_URL`: JDBC connection string for the Aiven instance.
+* `DB_USER`: Database administrative username.
+* `DB_PASSWORD`: Secure service password.
 
-    Driver: MySQL Connector/J (JDBC)
-
-Database Schema
-
-The database consists of 4 relational tables:
-
-    Authors: Stores biographical data on writers.
-
-    Titles: Tracks the abstract literary works.
-
-    Inventory_Items: Tracks the specific physical assets, including condition grades and signatures.
-
-    Sales_Log: Records transaction history.
-
-How to Run
-
-    Execute the provided NocturneArchive.sql script in your MySQL instance.
-
-    Ensure the mysql-connector-j JAR is in your project's referenced libraries.
-
-    Update the credentials in DatabaseManager.java (User: nocturne_admin).
-
-    Run App.java to launch the console interface.
+## Testing
+The repository includes an automated test suite within `App.java` that verifies full CRUD functionality across all architectural layers upon deployment.
