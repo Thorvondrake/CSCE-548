@@ -13,9 +13,10 @@ public class DatabaseManager {
                               ? System.getenv("DB_USER") 
                               : "nocturne_admin";
 
+    // Use System.getenv to pull the secret from Render's environment
     private String password = System.getenv("DB_PASSWORD") != null 
-                              ? System.getenv("DB_PASSWORD") 
-                              : "Qazwsx123";
+                            ? System.getenv("DB_PASSWORD") 
+                            : "Qazwsx123";
 
     // Helper method to get a connection
     private Connection getConnection() throws SQLException {
