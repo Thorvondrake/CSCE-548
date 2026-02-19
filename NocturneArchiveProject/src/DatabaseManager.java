@@ -3,10 +3,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManager {
-    // Database connection details
-    private String url = "jdbc:mysql://localhost:3306/NocturneArchive";
-    private String username = "nocturne_admin";
-    private String password = "Qazwsx123";
+// This looks for a "DB_URL" environment variable on Render.
+    // If it doesn't find one (like on your laptop), it defaults to your local MySQL.
+    private String url = System.getenv("DB_URL") != null 
+                         ? System.getenv("DB_URL") 
+                         : "mysql://avnadmin:AVNS_lqHtEMxKIOMm3uWH_GY@mysql-nocture-archive-nocturne-archive.a.aivencloud.com:11433/defaultdb?ssl-mode=REQUIRED";
+
+    private String username = System.getenv("DB_USER") != null 
+                              ? System.getenv("DB_USER") 
+                              : "nocturne_admin";
+
+    private String password = System.getenv("DB_PASSWORD") != null 
+                              ? System.getenv("DB_PASSWORD") 
+                              : "Qazwsx123";
 
     // Helper method to get a connection
     private Connection getConnection() throws SQLException {

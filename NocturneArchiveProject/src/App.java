@@ -3,12 +3,14 @@ import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) {
-        DatabaseManager db = new DatabaseManager();
+        // IMPORTANT: We now invoke the SERVICE layer, not the database directly
+        BookService archiveService = new BookService(); 
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
 
         System.out.println("=========================================");
         System.out.println("      THE NOCTURNE ARCHIVE SYSTEM        ");
+        System.out.println("           (Service-Oriented)            ");
         System.out.println("=========================================");
 
         while (running) {
@@ -24,30 +26,39 @@ public class App {
 
             switch (choice) {
                 case 1:
-                    System.out.println("\n--- CURRENT ARCHIVE INVENTORY ---");
-                    List<BookItem> items = db.getAllItems();
+                    System.out.println("\n--- RETRIEVING FROM SERVICE ---");
+                    List<BookItem> items = archiveService.getArchive();
                     for (BookItem item : items) System.out.println(item);
                     break;
                 case 2:
                     System.out.print("Enter Title ID (1-5): ");
                     int tid = scanner.nextInt();
-                    System.out.print("Enter Condition (Fine/Mint/Good): ");
+                    System.out.print("Enter Condition: ");
                     String cond = scanner.next();
                     System.out.print("Enter Asking Price: ");
                     double price = scanner.nextDouble();
-                    db.addItem(tid, cond, price, false);
+                    
+                    // Invoking Service Layer
+                    String createResponse = archiveService.postBook(tid, cond, price, false);
+                    System.out.println(createResponse);
                     break;
                 case 3:
                     System.out.print("Enter Item ID to update: ");
                     int upId = scanner.nextInt();
                     System.out.print("Enter New Price: ");
                     double newPrice = scanner.nextDouble();
-                    db.updatePrice(upId, newPrice);
+                    
+                    // Invoking Service Layer
+                    String updateResponse = archiveService.putPriceChange(upId, newPrice);
+                    System.out.println(updateResponse);
                     break;
                 case 4:
                     System.out.print("Enter Item ID to remove: ");
                     int delId = scanner.nextInt();
-                    db.deleteItem(delId);
+                    
+                    // Invoking Service Layer
+                    String deleteResponse = archiveService.deleteBook(delId);
+                    System.out.println(deleteResponse);
                     break;
                 case 5:
                     running = false;

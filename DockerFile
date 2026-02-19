@@ -1,14 +1,14 @@
-# Use Amazon Corretto (a stable, production-ready distribution of OpenJDK)
 FROM amazoncorretto:17-al2-jdk
-
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy everything from your repo into the container
+# Copy everything from your GitHub repo into the container
 COPY . .
 
-# Create bin folder and compile with the JDBC driver in the lib folder
-RUN mkdir -p bin && javac -cp ".:lib/*" src/*.java -d bin
+# Create bin folder
+RUN mkdir -p bin
 
-# Run the app
-CMD ["java", "-cp", "bin:lib/*", "App"]
+# Point the compiler to the correct subfolder path
+RUN javac -cp ".:NocturneArchiveProject/lib/*" $(find NocturneArchiveProject/src -name "*.java") -d bin
+
+# Run the app from the correct bin location
+CMD ["java", "-cp", "bin:NocturneArchiveProject/lib/*", "App"]
