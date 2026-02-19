@@ -1,14 +1,14 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jdk-slim
+# Use Amazon Corretto (a stable, production-ready distribution of OpenJDK)
+FROM amazoncorretto:17-al2-jdk
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy everything from your repo into the container
+COPY . .
 
-# Compile the Java code (including the lib folder for the JDBC driver)
-RUN javac -cp ".:lib/*" src/*.java -d bin
+# Create bin folder and compile with the JDBC driver in the lib folder
+RUN mkdir -p bin && javac -cp ".:lib/*" src/*.java -d bin
 
-# Run the app when the container launches
+# Run the app
 CMD ["java", "-cp", "bin:lib/*", "App"]
