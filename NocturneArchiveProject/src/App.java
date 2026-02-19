@@ -1,8 +1,36 @@
 import java.util.List;
-import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) {
+
+        BookService service = new BookService();
+                
+                System.out.println("=== NOCTURNE ARCHIVE SERVICE: AUTOMATED CLOUD TEST ===");
+
+                // 1. CREATE
+                System.out.println("\n[Testing CREATE...]");
+                service.postBook(1, "Mint", 1500.00, true);
+
+                // 2. READ
+                System.out.println("\n[Testing READ...]");
+                List<BookItem> archive = service.getArchive();
+                System.out.println("Retrieved " + archive.size() + " items from the cloud archive.");
+
+                // 3. UPDATE
+                if(!archive.isEmpty()) {
+                    System.out.println("\n[Testing UPDATE...]");
+                    service.putPriceChange(archive.get(0).id, 2000.00);
+                }
+
+                // 4. DELETE
+                if(!archive.isEmpty()) {
+                    System.out.println("\n[Testing DELETE...]");
+                    service.deleteBook(archive.get(archive.size()-1).id);
+                }
+                
+                System.out.println("\nAll services invoked. Architecture: Console -> Service -> Business -> Database.");
+
+        /*
         // IMPORTANT: We now invoke the SERVICE layer, not the database directly
         BookService archiveService = new BookService(); 
         Scanner scanner = new Scanner(System.in);
@@ -68,6 +96,6 @@ public class App {
                     System.out.println("Invalid choice.");
             }
         }
-        scanner.close();
+        scanner.close(); */
     }
 }

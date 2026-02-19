@@ -1,14 +1,5 @@
 import java.util.List;
 
-
-/**
- * HOSTING INSTRUCTIONS:
- * To host this as a microservice, use Spring Boot.
- * 1. Add 'spring-boot-starter-web' to your dependencies.
- * 2. Annotate this class with @RestController.
- * 3. Deploy to Heroku, AWS, or Render.com by connecting your GitHub Repo.
- * For this college project, we are simulating the service invocation.
- */
 public class BookService {
     private BookBusinessLogic business = new BookBusinessLogic();
 
