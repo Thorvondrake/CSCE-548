@@ -4,31 +4,47 @@ public class App {
     public static void main(String[] args) {
 
         BookService service = new BookService();
-                
-                System.out.println("=== NOCTURNE ARCHIVE SERVICE: AUTOMATED CLOUD TEST ===");
+        
+        System.out.println("=== NOCTURNE ARCHIVE SERVICE: AUTOMATED CLOUD TEST ===");
 
-                // 1. CREATE
-                System.out.println("\n[Testing CREATE...]");
-                service.postBook(1, "Mint", 1500.00, true);
+        // 1. CREATE
+        System.out.println("\n[Testing CREATE...]");
+        service.postBook(1, "Mint", 1500.00, true);
 
-                // 2. READ
-                System.out.println("\n[Testing READ...]");
-                List<BookItem> archive = service.getArchive();
-                System.out.println("Retrieved " + archive.size() + " items from the cloud archive.");
+        // 2. READ
+        System.out.println("\n[Testing READ...]");
+        List<BookItem> archive = service.getArchive();
+        System.out.println("Retrieved " + archive.size() + " items from the cloud archive.");
 
-                // 3. UPDATE
-                if(!archive.isEmpty()) {
-                    System.out.println("\n[Testing UPDATE...]");
-                    service.putPriceChange(archive.get(0).id, 2000.00);
-                }
+        // 3. UPDATE
+        if(!archive.isEmpty()) {
+            System.out.println("\n[Testing UPDATE...]");
+            service.putPriceChange(archive.get(0).id, 2000.00);
+        }
 
-                // 4. DELETE
-                if(!archive.isEmpty()) {
-                    System.out.println("\n[Testing DELETE...]");
-                    service.deleteBook(archive.get(archive.size()-1).id);
-                }
-                
-                System.out.println("\nAll services invoked. Architecture: Console -> Service -> Business -> Database.");
+        // 4. DELETE
+        if(!archive.isEmpty()) {
+            System.out.println("\n[Testing DELETE...]");
+            service.deleteBook(archive.get(archive.size()-1).id);
+        }
+        
+        System.out.println("\nAll services invoked. Architecture: Console -> Service -> Business -> Database.");
+
+        // --- RENDER CLOUD LIFECYCLE MANAGEMENT ---
+        // This section ensures Render stays "Live" and detects an open port
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+        
+        try (java.net.ServerSocket server = new java.net.ServerSocket(port)) {
+            System.out.println("Service is listening on port: " + port);
+            
+            // This keeps the program running forever to support the Project 3 Front End
+            while (true) {
+                server.accept(); 
+            }
+        } catch (java.io.IOException | NumberFormatException e) {
+            // Multicatch handles specific potential errors during startup
+            System.out.println("Service connection error: " + e.getMessage());
+        }
 
         /*
         // IMPORTANT: We now invoke the SERVICE layer, not the database directly
