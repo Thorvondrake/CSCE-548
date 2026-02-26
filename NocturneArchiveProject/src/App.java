@@ -17,8 +17,12 @@ public class App {
         // Phase 2: Legit Cloud Web Server for Project 3
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
         
-        try (ServerSocket server = new ServerSocket(port)) {
-            System.out.println("Service is LIVE and listening on port: " + port);
+        System.out.println("Starting server on port: " + port);
+        System.out.println("Environment: " + (System.getenv("PORT") != null ? "Production (Render)" : "Local Development"));
+        
+        try (ServerSocket server = new ServerSocket(port, 50, InetAddress.getByName("0.0.0.0"))) {
+            System.out.println("Service is LIVE and listening on 0.0.0.0:" + port);
+            System.out.println("Server ready to accept connections from GitHub Pages");
             
             while (true) {
                 try (Socket client = server.accept();
@@ -29,22 +33,33 @@ public class App {
                     String requestLine = in.readLine();
                     if (requestLine == null) continue;
                     
+                    System.out.println("Incoming request: " + requestLine);
+                    
                     String[] parts = requestLine.split(" ");
                     String path = parts.length > 1 ? parts[1] : "/";
                     String jsonResponse = "[]";
 
                     // --- SERVICE LAYER ROUTING ---
                     // Requirement: Invoke ALL get methods (All, Single, Subset)
-                    if (path.equals("/inventory")) {
+                    if (path.equals("/") || path.equals("/health")) {
+                        jsonResponse = "{\"status\":\"OK\",\"service\":\"Nocturne Archive API\",\"timestamp\":\"" + System.currentTimeMillis() + "\"}";
+                    } else if (path.equals("/inventory")) {
+                        System.out.println("Fetching all inventory...");
                         jsonResponse = convertToJson(service.getArchive());
                     } else if (path.equals("/signed")) {
+                        System.out.println("Fetching signed books...");
                         jsonResponse = convertToJson(service.getSignedArchive());
                     } else if (path.startsWith("/inventory/")) {
                         try {
                             int id = Integer.parseInt(path.substring(11));
+                            System.out.println("Fetching book with ID: " + id);
                             BookItem item = service.getBook(id);
                             jsonResponse = (item != null) ? convertItemToJson(item) : "{}";
-                        } catch (NumberFormatException e) { jsonResponse = "{\"error\":\"Invalid ID\"}"; }
+                        } catch (NumberFormatException e) { 
+                            jsonResponse = "{\"error\":\"Invalid ID\"}"; 
+                        }
+                    } else {
+                        jsonResponse = "{\"error\":\"Endpoint not found\",\"path\":\"" + path + "\"}";
                     }
 
                     // --- LEGIT HTTP RESPONSE WITH CORS ---
@@ -55,12 +70,24 @@ public class App {
                     out.println(""); // Header/Body separator
                     out.println(jsonResponse);
                     
+                    System.out.println("📤 Response sent: " + jsonResponse.substring(0, Math.min(100, jsonResponse.length())) + 
+                                     (jsonResponse.length() > 100 ? "..." : ""));
+                    
                 } catch (Exception e) {
-                    System.out.println("Request processing error: " + e.getMessage());
+                    System.err.println("Request processing error: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
-        } catch (IOException | NumberFormatException e) {
-            System.out.println("Service connection error: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("CRITICAL: Server socket error - " + e.getMessage());
+            System.err.println("This usually means port " + port + " is already in use or binding failed");
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.err.println("CRITICAL: Invalid PORT environment variable - " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("CRITICAL: Unexpected server error - " + e.getMessage());
+            e.printStackTrace();
         }
 
         /*
