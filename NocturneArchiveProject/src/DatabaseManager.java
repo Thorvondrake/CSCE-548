@@ -5,16 +5,16 @@ import java.util.List;
 public class DatabaseManager {
 // This looks for a "DB_URL" environment variable on Render.
     // If it doesn't find one (like on your laptop), it defaults to your local MySQL.
-    private String url = System.getenv("DB_URL") != null 
+    private final String url = System.getenv("DB_URL") != null 
                          ? System.getenv("DB_URL") 
                          : "mysql://avnadmin:AVNS_lqHtEMxKIOMm3uWH_GY@mysql-nocture-archive-nocturne-archive.a.aivencloud.com:11433/defaultdb?ssl-mode=REQUIRED";
 
-    private String username = System.getenv("DB_USER") != null 
+    private final String username = System.getenv("DB_USER") != null 
                               ? System.getenv("DB_USER") 
                               : "nocturne_admin";
 
     // Use System.getenv to pull the secret from Render's environment
-    private String password = System.getenv("DB_PASSWORD") != null 
+    private final String password = System.getenv("DB_PASSWORD") != null 
                             ? System.getenv("DB_PASSWORD") 
                             : "Qazwsx123";
 
@@ -58,6 +58,32 @@ public class DatabaseManager {
             e.printStackTrace();
         }
         return items;
+    }
+
+    public BookItem getItemById(int id) {
+        // JOIN with Titles to get the String 'TitleName' instead of just the int 'TitleID'
+        String sql = "SELECT i.ItemID, t.TitleName, i.Condition_Grade, i.Asking_Price, i.Is_Signed " +
+                    "FROM Inventory_Items i JOIN Titles t ON i.TitleID = t.TitleID " +
+                    "WHERE i.ItemID = ?";
+        
+        try (Connection conn = getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new BookItem(
+                        rs.getInt("ItemID"),
+                        rs.getString("TitleName"), // Now this is a String, matching the constructor!
+                        rs.getString("Condition_Grade"),
+                        rs.getDouble("Asking_Price"),
+                        rs.getBoolean("Is_Signed")
+                    );
+                }
+            }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
+        return null;
     }
 
     // --- UPDATE ---

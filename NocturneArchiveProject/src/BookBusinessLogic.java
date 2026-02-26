@@ -1,28 +1,37 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class BookBusinessLogic {
-    private DatabaseManager db = new DatabaseManager();
+    private final DatabaseManager db = new DatabaseManager();
 
-    // READ
     public List<BookItem> fetchAllInventory() {
         return db.getAllItems();
     }
 
-    // CREATE with Validation
-    public void acquireNewBook(int titleId, String condition, double price, boolean signed) {
-        if (price < 1.00) {
-            System.out.println("Business Rule Error: Rare books must be valued at $1.00 or more.");
-            return;
+    // Resolves "method findItemById(int) is undefined"
+    public BookItem findItemById(int id) {
+        return db.getItemById(id);
+    }
+
+    // Resolves "method fetchSignedBooks() is undefined"
+    public List<BookItem> fetchSignedBooks() {
+        List<BookItem> all = db.getAllItems();
+        List<BookItem> signed = new ArrayList<>();
+        for (BookItem item : all) {
+            if (item.isSigned) signed.add(item);
         }
+        return signed;
+    }
+
+    public void acquireNewBook(int titleId, String condition, double price, boolean signed) {
+        if (price < 1.00) return;
         db.addItem(titleId, condition, price, signed);
     }
 
-    // UPDATE
     public void adjustPrice(int itemId, double newPrice) {
         db.updatePrice(itemId, newPrice);
     }
 
-    // DELETE
     public void removeRecord(int itemId) {
         db.deleteItem(itemId);
     }

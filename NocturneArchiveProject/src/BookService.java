@@ -1,5 +1,4 @@
 import java.util.List;
-
 /**
  * SERVICE LAYER: BookService
  * * This layer acts as the public API for the Nocturne Archive System.
@@ -18,13 +17,20 @@ import java.util.List;
  * injected via Render Environment Variables (DB_URL, DB_USER, DB_PASSWORD).
  * 4. Build Command: javac -cp ".:lib/*" $(find . -name "*.java") -d bin.
  */
+    public class BookService {
+        private final BookBusinessLogic business = new BookBusinessLogic(); // Added final
 
-public class BookService {
-    private BookBusinessLogic business = new BookBusinessLogic();
+        public List<BookItem> getArchive() {
+            return business.fetchAllInventory();
+        }
 
-    public List<BookItem> getArchive() {
-        return business.fetchAllInventory();
-    }
+        public BookItem getBook(int id) {
+            return business.findItemById(id);
+        }
+
+        public List<BookItem> getSignedArchive() {
+            return business.fetchSignedBooks();
+        }
 
     public String postBook(int tid, String cond, double p, boolean s) {
         business.acquireNewBook(tid, cond, p, s);
