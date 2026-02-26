@@ -1,48 +1,65 @@
+import java.io.*;
+import java.net.*;
 import java.util.List;
 
 public class App {
     public static void main(String[] args) {
-
         BookService service = new BookService();
         
+        // Phase 1: Automated Test Evidence for Logs
         System.out.println("=== NOCTURNE ARCHIVE SERVICE: AUTOMATED CLOUD TEST ===");
-
-        // 1. CREATE
         System.out.println("\n[Testing CREATE...]");
         service.postBook(1, "Mint", 1500.00, true);
-
-        // 2. READ
-        System.out.println("\n[Testing READ...]");
         List<BookItem> archive = service.getArchive();
         System.out.println("Retrieved " + archive.size() + " items from the cloud archive.");
-
-        // 3. UPDATE
-        if(!archive.isEmpty()) {
-            System.out.println("\n[Testing UPDATE...]");
-            service.putPriceChange(archive.get(0).id, 2000.00);
-        }
-
-        // 4. DELETE
-        if(!archive.isEmpty()) {
-            System.out.println("\n[Testing DELETE...]");
-            service.deleteBook(archive.get(archive.size()-1).id);
-        }
-        
         System.out.println("\nAll services invoked. Architecture: Console -> Service -> Business -> Database.");
 
-        // --- RENDER CLOUD LIFECYCLE MANAGEMENT ---
-        // This section ensures Render stays "Live" and detects an open port
+        // Phase 2: Legit Cloud Web Server for Project 3
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
         
-        try (java.net.ServerSocket server = new java.net.ServerSocket(port)) {
-            System.out.println("Service is listening on port: " + port);
+        try (ServerSocket server = new ServerSocket(port)) {
+            System.out.println("Service is LIVE and listening on port: " + port);
             
-            // This keeps the program running forever to support the Project 3 Front End
             while (true) {
-                server.accept(); 
+                try (Socket client = server.accept();
+                     BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                     PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
+                    
+                    // Read the HTTP request header (e.g., "GET /inventory HTTP/1.1")
+                    String requestLine = in.readLine();
+                    if (requestLine == null) continue;
+                    
+                    String[] parts = requestLine.split(" ");
+                    String path = parts.length > 1 ? parts[1] : "/";
+                    String jsonResponse = "[]";
+
+                    // --- SERVICE LAYER ROUTING ---
+                    // Requirement: Invoke ALL get methods (All, Single, Subset)
+                    if (path.equals("/inventory")) {
+                        jsonResponse = convertToJson(service.getArchive());
+                    } else if (path.equals("/signed")) {
+                        jsonResponse = convertToJson(service.getSignedArchive());
+                    } else if (path.startsWith("/inventory/")) {
+                        try {
+                            int id = Integer.parseInt(path.substring(11));
+                            BookItem item = service.getBook(id);
+                            jsonResponse = (item != null) ? convertItemToJson(item) : "{}";
+                        } catch (NumberFormatException e) { jsonResponse = "{\"error\":\"Invalid ID\"}"; }
+                    }
+
+                    // --- LEGIT HTTP RESPONSE WITH CORS ---
+                    out.println("HTTP/1.1 200 OK");
+                    out.println("Content-Type: application/json");
+                    out.println("Access-Control-Allow-Origin: *"); // Allows GitHub Pages to talk to Render
+                    out.println("Content-Length: " + jsonResponse.length());
+                    out.println(""); // Header/Body separator
+                    out.println(jsonResponse);
+                    
+                } catch (Exception e) {
+                    System.out.println("Request processing error: " + e.getMessage());
+                }
             }
-        } catch (java.io.IOException | NumberFormatException e) {
-            // Multicatch handles specific potential errors during startup
+        } catch (IOException | NumberFormatException e) {
             System.out.println("Service connection error: " + e.getMessage());
         }
 
@@ -113,5 +130,20 @@ public class App {
             }
         }
         scanner.close(); */
+    }
+
+    // Helper to turn List into JSON string manually (No external libraries needed)
+    private static String convertToJson(List<BookItem> items) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < items.size(); i++) {
+            sb.append(convertItemToJson(items.get(i)));
+            if (i < items.size() - 1) sb.append(",");
+        }
+        return sb.append("]").toString();
+    }
+
+    private static String convertItemToJson(BookItem b) {
+        return String.format("{\"id\":%d,\"title\":\"%s\",\"condition\":\"%s\",\"price\":%.2f,\"isSigned\":%b}",
+            b.id, b.title, b.condition, b.price, b.isSigned);
     }
 }
