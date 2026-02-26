@@ -46,46 +46,120 @@
     <script>
         const BASE_URL = "https://csce-548.onrender.com";
 
-        async function apiCall(endpoint) {
-            console.log("Attempting to reach endpoint: " + endpoint);
+        // Updated function with proper error handling
+        async function fetchData(endpoint) {
+            console.log(`Making API call to: ${BASE_URL}/${endpoint}`);
+            
             try {
-                const response = await fetch(`${BASE_URL}/${endpoint}`);
-                console.log("Response status: ", response.status);
+                const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                console.log(`Response status: ${response.status}`);
+                console.log(`Response ok: ${response.ok}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
-                console.log("Data received: ", data);
+                console.log("Data received:", data);
                 
-                renderTable(Array.isArray(data) ? data : [data]);
+                render(data);
+                
             } catch (error) {
-                console.error("Critical Fetch Error: ", error);
+                console.error("API Call Error:", error);
+                displayError(`Failed to fetch data: ${error.message}`);
             }
-        }
-
-        async function fetchData(endpoint) {
-            const res = await fetch(`${BASE_URL}/${endpoint}`);
-            const data = await res.json();
-            render(data);
         }
 
         async function fetchSingle() {
             const id = document.getElementById('bookId').value;
-            const res = await fetch(`${BASE_URL}/inventory/${id}`);
-            const data = await res.json();
-            render([data]); // Wrap in array for the renderer
+            
+            if (!id) {
+                displayError("Please enter a book ID");
+                return;
+            }
+            
+            console.log(`Fetching single book with ID: ${id}`);
+            
+            try {
+                const response = await fetch(`${BASE_URL}/inventory/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                console.log(`Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Single book data:", data);
+                
+                // Check if data is empty object (book not found)
+                if (Object.keys(data).length === 0) {
+                    displayError(`No book found with ID: ${id}`);
+                    return;
+                }
+                
+                render([data]); // Wrap in array for the renderer
+                
+            } catch (error) {
+                console.error("Single book fetch error:", error);
+                displayError(`Failed to fetch book: ${error.message}`);
+            }
         }
 
         function render(data) {
             const body = document.getElementById('tableBody');
+            
+            if (!Array.isArray(data) || data.length === 0) {
+                body.innerHTML = '<tr><td colspan="5">No data available</td></tr>';
+                return;
+            }
+            
             body.innerHTML = data.map(book => `
                 <tr>
-                    <td>${book.id}</td>
-                    <td>${book.title}</td>
-                    <td>${book.condition}</td>
-                    <td>$${book.price.toFixed(2)}</td>
+                    <td>${book.id || 'N/A'}</td>
+                    <td>${book.title || 'N/A'}</td>
+                    <td>${book.condition || 'N/A'}</td>
+                    <td>$${book.price ? book.price.toFixed(2) : '0.00'}</td>
                     <td>${book.isSigned ? "Yes" : "No"}</td>
                 </tr>
             `).join('');
         }
+
+        function displayError(message) {
+            const body = document.getElementById('tableBody');
+            body.innerHTML = `<tr><td colspan="5" style="color: #ef4444; text-align: center;">${message}</td></tr>`;
+        }
+
+        // Test function to check if the API is reachable
+        async function testConnection() {
+            console.log("Testing connection to:", BASE_URL);
+            try {
+                const response = await fetch(BASE_URL, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                console.log("Connection test response:", response);
+            } catch (error) {
+                console.error("Connection test failed:", error);
+            }
+        }
+
+        // Run connection test when page loads
+        window.addEventListener('load', () => {
+            console.log("Page loaded, testing API connection...");
+            testConnection();
+        });
     </script>
 </body>
 </html>
