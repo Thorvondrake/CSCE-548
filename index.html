@@ -52,10 +52,7 @@
             
             try {
                 const response = await fetch(`${BASE_URL}/${endpoint}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
+                    method: 'GET'
                 });
                 
                 console.log(`Response status: ${response.status}`);
@@ -88,10 +85,7 @@
             
             try {
                 const response = await fetch(`${BASE_URL}/inventory/${id}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
+                    method: 'GET'
                 });
                 
                 console.log(`Response status: ${response.status}`);
@@ -146,8 +140,7 @@
             console.log("Testing connection to:", BASE_URL);
             try {
                 const response = await fetch(BASE_URL, {
-                    method: 'GET',
-                    mode: 'cors'
+                    method: 'GET'
                 });
                 console.log("Connection test response:", response);
             } catch (error) {

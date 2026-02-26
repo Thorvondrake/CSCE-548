@@ -36,8 +36,22 @@ public class App {
                     System.out.println("Incoming request: " + requestLine);
                     
                     String[] parts = requestLine.split(" ");
+                    String method = parts.length > 0 ? parts[0] : "GET";
                     String path = parts.length > 1 ? parts[1] : "/";
                     String jsonResponse = "[]";
+                    
+                    // Handle CORS preflight (OPTIONS) requests
+                    if ("OPTIONS".equals(method)) {
+                        System.out.println("Handling CORS preflight request for: " + path);
+                        out.println("HTTP/1.1 200 OK");
+                        out.println("Access-Control-Allow-Origin: *");
+                        out.println("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+                        out.println("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+                        out.println("Access-Control-Max-Age: 86400");
+                        out.println("Content-Length: 0");
+                        out.println("");
+                        continue;
+                    }
 
                     // --- SERVICE LAYER ROUTING ---
                     // Requirement: Invoke ALL get methods (All, Single, Subset)
@@ -65,7 +79,9 @@ public class App {
                     // --- LEGIT HTTP RESPONSE WITH CORS ---
                     out.println("HTTP/1.1 200 OK");
                     out.println("Content-Type: application/json");
-                    out.println("Access-Control-Allow-Origin: *"); // Allows GitHub Pages to talk to Render
+                    out.println("Access-Control-Allow-Origin: *");
+                    out.println("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+                    out.println("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
                     out.println("Content-Length: " + jsonResponse.length());
                     out.println(""); // Header/Body separator
                     out.println(jsonResponse);
