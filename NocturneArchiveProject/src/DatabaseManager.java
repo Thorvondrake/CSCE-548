@@ -7,16 +7,16 @@ public class DatabaseManager {
     // If it doesn't find one (like on your laptop), it defaults to your local MySQL.
     private final String url = System.getenv("DB_URL") != null 
                          ? System.getenv("DB_URL") 
-                         : "jdbc:mysql://mysql-nocture-archive-nocturne-archive.a.aivencloud.com:11433/defaultdb?ssl-mode=REQUIRED";
+                         : "mysql://avnadmin:AVNS_lqHtEMxKIOMm3uWH_GY@mysql-nocture-archive-nocturne-archive.a.aivencloud.com:11433/defaultdb?ssl-mode=REQUIRED";
 
     private final String username = System.getenv("DB_USER") != null 
                               ? System.getenv("DB_USER") 
-                              : "avnadmin";
+                              : "nocturne_admin";
 
     // Use System.getenv to pull the secret from Render's environment
     private final String password = System.getenv("DB_PASSWORD") != null 
                             ? System.getenv("DB_PASSWORD") 
-                            : "AVNS_lqHtEMxKIOMm3uWH_GY";
+                            : "Qazwsx123";
 
     // Helper method to get a connection
     private Connection getConnection() throws SQLException {
