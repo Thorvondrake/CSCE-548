@@ -2,93 +2,479 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Nocturne Archive | Management Portal</title>
+    <title>Nocturne Archive | Complete Management Portal</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; }
-        .card { background: #1e293b; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        button { background: #3b82f6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; padding: 1rem; margin: 0; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: #e2e8f0; margin: 0; font-size: 2rem; }
+        .header p { color: #94a3b8; margin: 0.5rem 0; }
+        
+        .tabs { display: flex; background: #1e293b; border-radius: 12px 12px 0 0; overflow: hidden; }
+        .tab { flex: 1; padding: 1rem; text-align: center; cursor: pointer; background: #334155; border: none; color: #94a3b8; font-weight: 600; }
+        .tab.active { background: #3b82f6; color: white; }
+        .tab:hover:not(.active) { background: #475569; }
+        
+        .card { background: #1e293b; border-radius: 0 0 12px 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .entity-section { display: none; }
+        .entity-section.active { display: block; }
+        
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .control-group { display: flex; gap: 0.5rem; align-items: center; }
+        
+        button { background: #3b82f6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap; }
         button:hover { background: #2563eb; }
-        input { background: #334155; border: 1px solid #475569; color: white; padding: 0.75rem; border-radius: 6px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
-        th { text-align: left; color: #94a3b8; border-bottom: 2px solid #334155; padding: 0.75rem; font-size: 0.875rem; }
+        button.secondary { background: #6366f1; }
+        button.secondary:hover { background: #5b21b6; }
+        button.success { background: #10b981; }
+        button.success:hover { background: #059669; }
+        
+        input { background: #334155; border: 1px solid #475569; color: white; padding: 0.75rem; border-radius: 6px; width: 120px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; color: #94a3b8; border-bottom: 2px solid #334155; padding: 0.75rem; font-size: 0.875rem; font-weight: 600; }
         td { padding: 0.75rem; border-bottom: 1px solid #334155; }
+        
+        .status { padding: 1rem; margin: 1rem 0; border-radius: 6px; font-weight: 600; }
+        .status.success { background: #065f46; border: 1px solid #10b981; color: #6ee7b7; }
+        .status.error { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; }
+        .status.info { background: #1e3a8a; border: 1px solid #3b82f6; color: #93c5fd; }
+        
+        .summary { background: #374151; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .summary h3 { margin: 0 0 0.5rem 0; color: #e5e7eb; }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>🏴‍☠️ Nocturne Archive Management Portal</h1>
+        <p>Complete CRUD Operations for All Entities | Project 3 Client Interface</p>
+        <div class="summary" id="systemSummary">
+            <h3>System Overview</h3>
+            <p id="summaryText">Loading system data...</p>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('authors')">📚 Authors</button>
+        <button class="tab" onclick="showTab('titles')">📖 Titles</button>
+        <button class="tab" onclick="showTab('inventory')">💎 Inventory</button>
+        <button class="tab" onclick="showTab('sales')">💰 Sales</button>
+    </div>
+
     <div class="card">
-        <h1>Nocturne Archive Portal</h1>
-        <p>Project 3 Client Interface</p>
-        
-        <div class="grid">
-            <button onclick="fetchData('inventory')">Get All Records</button>
-            <button onclick="fetchData('signed')">Get Signed Subset</button>
-            <div style="display: flex; gap: 0.5rem;">
-                <input type="number" id="bookId" placeholder="ID">
-                <button onclick="fetchSingle()">Get Single</button>
+        <!-- AUTHORS SECTION -->
+        <div id="authors" class="entity-section active">
+            <h2>Authors Management</h2>
+            <div class="controls">
+                <button onclick="fetchAuthors('all')">📋 Get All Authors</button>
+                <div class="control-group">
+                    <input type="number" id="authorId" placeholder="Author ID">
+                    <button onclick="fetchAuthor()">🔍 Get Single Author</button>
+                </div>
+                <button class="secondary" onclick="countAuthors()">📊 Count Authors</button>
             </div>
+            <table id="authorsTable">
+                <thead>
+                    <tr><th>ID</th><th>Full Name</th><th>Nationality</th><th>Birth Year</th></tr>
+                </thead>
+                <tbody id="authorsBody"></tbody>
+            </table>
         </div>
 
-        <table id="archiveTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Title</th>
-                    <th>Condition</th>
-                    <th>Price</th>
-                    <th>Signed</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+        <!-- TITLES SECTION -->
+        <div id="titles" class="entity-section">
+            <h2>Titles Management</h2>
+            <div class="controls">
+                <button onclick="fetchTitles('all')">📋 Get All Titles</button>
+                <div class="control-group">
+                    <input type="number" id="titleId" placeholder="Title ID">
+                    <button onclick="fetchTitle()">🔍 Get Single Title</button>
+                </div>
+                <div class="control-group">
+                    <input type="number" id="titleAuthorId" placeholder="Author ID">
+                    <button class="secondary" onclick="fetchTitlesByAuthor()">👤 Get Titles by Author</button>
+                </div>
+                <button class="success" onclick="countTitles()">📊 Count Titles</button>
+            </div>
+            <table id="titlesTable">
+                <thead>
+                    <tr><th>ID</th><th>Title Name</th><th>Genre</th><th>Publication Year</th><th>Author ID</th></tr>
+                </thead>
+                <tbody id="titlesBody"></tbody>
+            </table>
+        </div>
+
+        <!-- INVENTORY SECTION -->
+        <div id="inventory" class="entity-section">
+            <h2>Inventory Management</h2>
+            <div class="controls">
+                <button onclick="fetchInventory('all')">📋 Get All Inventory</button>
+                <button class="secondary" onclick="fetchInventory('signed')">✨ Get Signed Books</button>
+                <div class="control-group">
+                    <input type="number" id="bookId" placeholder="Item ID">
+                    <button onclick="fetchSingleBook()">🔍 Get Single Item</button>
+                </div>
+                <button class="success" onclick="countInventory()">📊 Count Items</button>
+            </div>
+            <table id="inventoryTable">
+                <thead>
+                    <tr><th>ID</th><th>Title</th><th>Condition</th><th>Price</th><th>Signed</th></tr>
+                </thead>
+                <tbody id="inventoryBody"></tbody>
+            </table>
+        </div>
+
+        <!-- SALES SECTION -->
+        <div id="sales" class="entity-section">
+            <h2>Sales Management</h2>
+            <div class="controls">
+                <button onclick="fetchSales('all')">📋 Get All Sales</button>
+                <button class="success" onclick="calculateRevenue()">💵 Get Total Revenue</button>
+                <div class="control-group">
+                    <input type="number" id="saleId" placeholder="Sale ID">
+                    <button onclick="fetchSale()">🔍 Get Single Sale</button>
+                </div>
+                <div class="control-group">
+                    <input type="number" id="saleItemId" placeholder="Item ID">
+                    <button class="secondary" onclick="fetchSalesForItem()">📦 Get Sales for Item</button>
+                </div>
+            </div>
+            <table id="salesTable">
+                <thead>
+                    <tr><th>Sale ID</th><th>Item ID</th><th>Sale Date</th><th>Final Price</th><th>Buyer</th></tr>
+                </thead>
+                <tbody id="salesBody"></tbody>
+            </table>
+        </div>
+
+        <div id="status" class="status info" style="display: none;"></div>
     </div>
 
     <script>
-        const BASE_URL = "https://csce-548.onrender.com";
+        // Update this to your actual deployed service URL
+        const BASE_URL = "http://csce-548.onrender.com";
+        
+        let systemData = {
+            authors: 0,
+            titles: 0,
+            inventory: 0,
+            sales: 0,
+            revenue: 0
+        };
 
-        // Updated function with proper error handling
-        async function fetchData(endpoint) {
-            console.log(`Making API call to: ${BASE_URL}/${endpoint}`);
+        // Tab management
+        function showTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            
+            // Update active section
+            document.querySelectorAll('.entity-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            
+            showStatus(`Switched to ${tabName.charAt(0).toUpperCase() + tabName.slice(1)} management`, 'info');
+        }
+
+        // Status management
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        // System summary update
+        function updateSystemSummary() {
+            const summaryText = `📊 Authors: ${systemData.authors} | 📖 Titles: ${systemData.titles} | 💎 Inventory: ${systemData.inventory} | 💰 Sales: ${systemData.sales} | 💵 Revenue: $${systemData.revenue.toFixed(2)}`;
+            document.getElementById('summaryText').textContent = summaryText;
+        }
+
+        // ===================================================================
+        // AUTHORS OPERATIONS  
+        // ===================================================================
+        
+        async function fetchAuthors(type) {
+            console.log(`Fetching authors: ${type}`);
+            showStatus('Loading authors...', 'info');
             
             try {
-                const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                const response = await fetch(`${BASE_URL}/authors`, {
                     method: 'GET'
                 });
-                
-                console.log(`Response status: ${response.status}`);
-                console.log(`Response ok: ${response.ok}`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log("Data received:", data);
+                console.log("Authors data:", data);
                 
-                render(data);
+                renderAuthors(data);
+                systemData.authors = Array.isArray(data) ? data.length : 0;
+                updateSystemSummary();
+                showStatus(`Loaded ${systemData.authors} authors`, 'success');
                 
             } catch (error) {
-                console.error("API Call Error:", error);
-                displayError(`Failed to fetch data: ${error.message}`);
+                console.error("Authors fetch error:", error);
+                showStatus(`Failed to fetch authors: ${error.message}`, 'error');
+                
+                // Fallback to demo data if API fails
+                const mockAuthors = [
+                    { id: 1, fullName: "Edgar Allan Poe", nationality: "American", birthYear: 1809 },
+                    { id: 2, fullName: "H.P. Lovecraft", nationality: "American", birthYear: 1890 },
+                    { id: 3, fullName: "Mary Shelley", nationality: "British", birthYear: 1797 },
+                    { id: 4, fullName: "Bram Stoker", nationality: "Irish", birthYear: 1847 },
+                    { id: 5, fullName: "Shirley Jackson", nationality: "American", birthYear: 1916 }
+                ];
+                renderAuthors(mockAuthors);
+                systemData.authors = mockAuthors.length;
+                updateSystemSummary();
+                showStatus(`Loaded ${mockAuthors.length} authors (fallback data)`, 'error');
             }
         }
 
-        async function fetchSingle() {
-            const id = document.getElementById('bookId').value;
-            
+        async function fetchAuthor() {
+            const id = document.getElementById('authorId').value;
             if (!id) {
-                displayError("Please enter a book ID");
+                showStatus("Please enter an Author ID", 'error');
                 return;
             }
             
-            console.log(`Fetching single book with ID: ${id}`);
+            showStatus(`Looking up author ID ${id}...`, 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/authors/${id}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Single author data:", data);
+                
+                if (Object.keys(data).length === 0) {
+                    showStatus(`No author found with ID: ${id}`, 'error');
+                    return;
+                }
+                
+                renderAuthors([data]);
+                showStatus(`Found author: ${data.fullName}`, 'success');
+                
+            } catch (error) {
+                console.error("Single author fetch error:", error);
+                showStatus(`Failed to fetch author: ${error.message}`, 'error');
+            }
+        }
+
+        async function countAuthors() {
+            showStatus('Counting authors...', 'info');
+            try {
+                const response = await fetch(`${BASE_URL}/authors`);
+                const data = await response.json();
+                systemData.authors = Array.isArray(data) ? data.length : 0;
+                updateSystemSummary();
+                showStatus(`Author count: ${systemData.authors}`, 'success');
+            } catch (error) {
+                showStatus('Failed to count authors', 'error');
+            }
+        }
+
+        function renderAuthors(authors) {
+            const tbody = document.getElementById('authorsBody');
+            
+            if (!Array.isArray(authors) || authors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">No authors found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = authors.map(author => `
+                <tr>
+                    <td>${author.id || author.authorId || 'N/A'}</td>
+                    <td>${author.fullName || 'N/A'}</td>
+                    <td>${author.nationality || 'N/A'}</td>
+                    <td>${author.birthYear || 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ===================================================================
+        // TITLES OPERATIONS  
+        // ===================================================================
+        
+        async function fetchTitles(type) {
+            console.log(`Fetching titles: ${type}`);
+            showStatus('Loading titles...', 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/titles`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Titles data:", data);
+                
+                renderTitles(data);
+                systemData.titles = Array.isArray(data) ? data.length : 0;
+                updateSystemSummary();
+                showStatus(`Loaded ${systemData.titles} titles`, 'success');
+                
+            } catch (error) {
+                console.error("Titles fetch error:", error);
+                showStatus(`Failed to fetch titles: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchTitle() {
+            const id = document.getElementById('titleId').value;
+            if (!id) {
+                showStatus("Please enter a Title ID", 'error');
+                return;
+            }
+            
+            showStatus(`Looking up title ID ${id}...`, 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/titles/${id}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Single title data:", data);
+                
+                if (Object.keys(data).length === 0) {
+                    showStatus(`No title found with ID: ${id}`, 'error');
+                    return;
+                }
+                
+                renderTitles([data]);
+                showStatus(`Found title: ${data.titleName}`, 'success');
+                
+            } catch (error) {
+                console.error("Single title fetch error:", error);
+                showStatus(`Failed to fetch title: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchTitlesByAuthor() {
+            const authorId = document.getElementById('titleAuthorId').value;
+            if (!authorId) {
+                showStatus("Please enter an Author ID", 'error');
+                return;
+            }
+            
+            showStatus(`Loading titles by author ${authorId}...`, 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/titles/author/${authorId}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Titles by author data:", data);
+                
+                renderTitles(data);
+                showStatus(`Found ${Array.isArray(data) ? data.length : 0} titles by author ${authorId}`, 'success');
+                
+            } catch (error) {
+                console.error("Titles by author fetch error:", error);
+                showStatus(`Failed to fetch titles by author: ${error.message}`, 'error');
+            }
+        }
+
+        async function countTitles() {
+            showStatus('Counting titles...', 'info');
+            try {
+                const response = await fetch(`${BASE_URL}/titles`);
+                const data = await response.json();
+                systemData.titles = Array.isArray(data) ? data.length : 0;
+                updateSystemSummary();
+                showStatus(`Title count: ${systemData.titles}`, 'success');
+            } catch (error) {
+                showStatus('Failed to count titles', 'error');
+            }
+        }
+
+        function renderTitles(titles) {
+            const tbody = document.getElementById('titlesBody');
+            
+            if (!Array.isArray(titles) || titles.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">No titles found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = titles.map(title => `
+                <tr>
+                    <td>${title.id || title.titleId || 'N/A'}</td>
+                    <td>${title.titleName || 'N/A'}</td>
+                    <td>${title.genre || 'N/A'}</td>
+                    <td>${title.originalPublicationYear || 'N/A'}</td>
+                    <td>${title.authorId || 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ===================================================================
+        // INVENTORY OPERATIONS (EXISTING + ENHANCED)
+        // ===================================================================
+        
+        async function fetchInventory(type) {
+            console.log(`Fetching inventory: ${type}`);
+            showStatus(`Loading ${type} inventory...`, 'info');
+            
+            try {
+                const endpoint = type === 'signed' ? 'signed' : 'inventory';
+                const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log(`${type} inventory data:`, data);
+                
+                renderInventory(data);
+                systemData.inventory = Array.isArray(data) ? data.length : 0;
+                updateSystemSummary();
+                showStatus(`Loaded ${systemData.inventory} ${type} items`, 'success');
+                
+            } catch (error) {
+                console.error(`${type} inventory fetch error:`, error);
+                showStatus(`Failed to fetch ${type} inventory: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchSingleBook() {
+            const id = document.getElementById('bookId').value;
+            if (!id) {
+                showStatus("Please enter a Book ID", 'error');
+                return;
+            }
+            
+            showStatus(`Looking up book ID ${id}...`, 'info');
             
             try {
                 const response = await fetch(`${BASE_URL}/inventory/${id}`, {
                     method: 'GET'
                 });
-                
-                console.log(`Response status: ${response.status}`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -97,61 +483,238 @@
                 const data = await response.json();
                 console.log("Single book data:", data);
                 
-                // Check if data is empty object (book not found)
                 if (Object.keys(data).length === 0) {
-                    displayError(`No book found with ID: ${id}`);
+                    showStatus(`No book found with ID: ${id}`, 'error');
                     return;
                 }
                 
-                render([data]); // Wrap in array for the renderer
+                renderInventory([data]);
+                showStatus(`Found book: ${data.title}`, 'success');
                 
             } catch (error) {
                 console.error("Single book fetch error:", error);
-                displayError(`Failed to fetch book: ${error.message}`);
+                showStatus(`Failed to fetch book: ${error.message}`, 'error');
             }
         }
 
-        function render(data) {
-            const body = document.getElementById('tableBody');
+        async function countInventory() {
+            showStatus('Counting inventory...', 'info');
+            try {
+                const response = await fetch(`${BASE_URL}/inventory`);
+                const data = await response.json();
+                systemData.inventory = Array.isArray(data) ? data.length : 0;
+                updateSystemSummary();
+                showStatus(`Inventory count: ${systemData.inventory}`, 'success');
+            } catch (error) {
+                showStatus('Failed to count inventory', 'error');
+            }
+        }
+
+        function renderInventory(data) {
+            const tbody = document.getElementById('inventoryBody');
             
             if (!Array.isArray(data) || data.length === 0) {
-                body.innerHTML = '<tr><td colspan="5">No data available</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5">No inventory data available</td></tr>';
                 return;
             }
             
-            body.innerHTML = data.map(book => `
+            tbody.innerHTML = data.map(book => `
                 <tr>
                     <td>${book.id || 'N/A'}</td>
                     <td>${book.title || 'N/A'}</td>
                     <td>${book.condition || 'N/A'}</td>
                     <td>$${book.price ? book.price.toFixed(2) : '0.00'}</td>
-                    <td>${book.isSigned ? "Yes" : "No"}</td>
+                    <td>${book.isSigned ? "✨ Yes" : "No"}</td>
                 </tr>
             `).join('');
         }
 
-        function displayError(message) {
-            const body = document.getElementById('tableBody');
-            body.innerHTML = `<tr><td colspan="5" style="color: #ef4444; text-align: center;">${message}</td></tr>`;
-        }
-
-        // Test function to check if the API is reachable
-        async function testConnection() {
-            console.log("Testing connection to:", BASE_URL);
+        // ===================================================================
+        // SALES OPERATIONS
+        // ===================================================================
+        
+        async function fetchSales(type) {
+            console.log(`Fetching sales: ${type}`);
+            showStatus('Loading sales...', 'info');
+            
             try {
-                const response = await fetch(BASE_URL, {
+                const response = await fetch(`${BASE_URL}/sales`, {
                     method: 'GET'
                 });
-                console.log("Connection test response:", response);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Sales data:", data);
+                
+                renderSales(data);
+                systemData.sales = Array.isArray(data) ? data.length : 0;
+                // Calculate revenue from actual data
+                systemData.revenue = Array.isArray(data) ? data.reduce((sum, sale) => sum + (sale.finalPrice || 0), 0) : 0;
+                updateSystemSummary();
+                showStatus(`Loaded ${systemData.sales} sales`, 'success');
+                
             } catch (error) {
-                console.error("Connection test failed:", error);
+                console.error("Sales fetch error:", error);
+                showStatus(`Failed to fetch sales: ${error.message}`, 'error');
+                
+                // Fallback to demo data if API fails
+                const mockSales = [
+                    { saleId: 1, itemId: 5, saleDate: "2024-03-01", finalPrice: 650.00, buyerName: "John Collector" },
+                    { saleId: 2, itemId: 12, saleDate: "2024-03-02", finalPrice: 1200.00, buyerName: "Sarah Books" },
+                    { saleId: 3, itemId: 8, saleDate: "2024-03-03", finalPrice: 850.00, buyerName: null },
+                    { saleId: 4, itemId: 15, saleDate: "2024-03-04", finalPrice: 2000.00, buyerName: "Archive Museum" }
+                ];
+                
+                renderSales(mockSales);
+                systemData.sales = mockSales.length;
+                systemData.revenue = mockSales.reduce((sum, sale) => sum + sale.finalPrice, 0);
+                updateSystemSummary();
+                showStatus(`Loaded ${mockSales.length} sales records (fallback data)`, 'error');
             }
         }
 
-        // Run connection test when page loads
-        window.addEventListener('load', () => {
-            console.log("Page loaded, testing API connection...");
-            testConnection();
+        async function fetchSale() {
+            const id = document.getElementById('saleId').value;
+            if (!id) {
+                showStatus("Please enter a Sale ID", 'error');
+                return;
+            }
+            
+            showStatus(`Looking up sale ID ${id}...`, 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/sales/${id}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Single sale data:", data);
+                
+                if (Object.keys(data).length === 0) {
+                    showStatus(`No sale found with ID: ${id}`, 'error');
+                    return;
+                }
+                
+                renderSales([data]);
+                showStatus(`Found sale: $${data.finalPrice ? data.finalPrice.toFixed(2) : 'N/A'}`, 'success');
+                
+            } catch (error) {
+                console.error("Single sale fetch error:", error);
+                showStatus(`Failed to fetch sale: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchSalesForItem() {
+            const itemId = document.getElementById('saleItemId').value;
+            if (!itemId) {
+                showStatus("Please enter an Item ID", 'error');
+                return;
+            }
+            
+            showStatus(`Loading sales for item ${itemId}...`, 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/sales/item/${itemId}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Sales by item data:", data);
+                
+                renderSales(data);
+                showStatus(`Found ${Array.isArray(data) ? data.length : 0} sales for item ${itemId}`, 'success');
+                
+            } catch (error) {
+                console.error("Sales by item fetch error:", error);
+                showStatus(`Failed to fetch sales by item: ${error.message}`, 'error');
+            }
+        }
+
+        async function calculateRevenue() {
+            showStatus('Calculating total revenue...', 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/sales/revenue`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const revenueData = await response.json();
+                console.log("Revenue data:", revenueData);
+                
+                // Handle both object and number responses
+                const revenue = revenueData.totalRevenue || revenueData;
+                systemData.revenue = revenue;
+                updateSystemSummary();
+                showStatus(`Total Revenue: $${revenue.toFixed(2)}`, 'success');
+                
+            } catch (error) {
+                console.error("Revenue calculation error:", error);
+                showStatus(`Failed to calculate revenue: ${error.message}`, 'error');
+            }
+        }
+
+        function renderSales(sales) {
+            const tbody = document.getElementById('salesBody');
+            
+            if (!Array.isArray(sales) || sales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">No sales data available</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = sales.map(sale => `
+                <tr>
+                    <td>${sale.saleId || sale.id || 'N/A'}</td>
+                    <td>${sale.itemId || 'N/A'}</td>
+                    <td>${sale.saleDate || 'N/A'}</td>
+                    <td>$${sale.finalPrice ? sale.finalPrice.toFixed(2) : '0.00'}</td>
+                    <td>${sale.buyerName || 'Anonymous'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ===================================================================
+        // INITIALIZATION
+        // ===================================================================
+        
+        // Load initial data when page loads
+        window.addEventListener('load', async () => {
+            console.log("🏴‍☠️ Nocturne Archive Portal Loading...");
+            showStatus('Initializing Nocturne Archive Portal...', 'info');
+            
+            try {
+                // Test connection to backend
+                const response = await fetch(`${BASE_URL}/health`);
+                if (response.ok) {
+                    showStatus('✅ Connected to Nocturne Archive Service', 'success');
+                } else {
+                    showStatus('⚠️ Backend service may be offline', 'error');
+                }
+            } catch (error) {
+                showStatus('⚠️ Backend connection failed - using demo data', 'error');
+            }
+            
+            // Load default inventory data
+            await fetchInventory('all');
+            
+            // Initialize system summary
+            updateSystemSummary();
+            
+            console.log("Portal initialization complete");
         });
     </script>
 </body>
