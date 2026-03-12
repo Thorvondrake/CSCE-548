@@ -1,4 +1,5 @@
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,6 +16,15 @@ public class SaleBusinessLogic {
 
     public Sale findSaleById(int id) {
         return db.getSaleById(id);
+    }
+
+    public List<Sale> findSalesByBuyer(String buyerName) {
+        // Business rule: Validate buyer name is not null or empty
+        if (buyerName == null || buyerName.trim().isEmpty()) {
+            System.out.println("Error: Buyer name cannot be empty.");
+            return new ArrayList<>();
+        }
+        return db.getSalesByBuyer(buyerName.trim());
     }
 
     public void recordNewSale(int itemId, Date saleDate, double finalPrice, String buyerName) {

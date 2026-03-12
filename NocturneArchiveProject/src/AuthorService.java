@@ -35,6 +35,13 @@ public class AuthorService {
     }
 
     /**
+     * GET /authors/nationality/{nationality} - Retrieve authors by nationality
+     */
+    public List<Author> getAuthorsByNationality(String nationality) {
+        return business.findAuthorsByNationality(nationality);
+    }
+
+    /**
      * POST /authors - Create new author
      */
     public String postAuthor(String fullName, String nationality, int birthYear) {

@@ -92,18 +92,26 @@ public class App {
                             jsonResponse = handleCreateAuthor(requestBody, authorService);
                         }
                     } else if (path.startsWith("/authors/")) {
-                        try {
-                            int id = Integer.parseInt(path.substring(9));
+                        if (path.startsWith("/authors/nationality/")) {
                             if ("GET".equals(method)) {
-                                System.out.println("GET: Fetching author with ID: " + id);
-                                Author author = authorService.getAuthor(id);
-                                jsonResponse = (author != null) ? convertAuthorToJson(author) : "{}";
-                            } else if ("PUT".equals(method)) {
-                                System.out.println("PUT: Updating author with ID: " + id);
-                                jsonResponse = handleUpdateAuthor(id, requestBody, authorService);
+                                String nationality = path.substring(21); // Remove "/authors/nationality/" 
+                                System.out.println("GET: Fetching authors by nationality: " + nationality);
+                                jsonResponse = convertAuthorsToJson(authorService.getAuthorsByNationality(nationality));
                             }
-                        } catch (NumberFormatException e) { 
-                            jsonResponse = "{\"error\":\"Invalid Author ID\"}"; 
+                        } else {
+                            try {
+                                int id = Integer.parseInt(path.substring(9));
+                                if ("GET".equals(method)) {
+                                    System.out.println("GET: Fetching author with ID: " + id);
+                                    Author author = authorService.getAuthor(id);
+                                    jsonResponse = (author != null) ? convertAuthorToJson(author) : "{}";
+                                } else if ("PUT".equals(method)) {
+                                    System.out.println("PUT: Updating author with ID: " + id);
+                                    jsonResponse = handleUpdateAuthor(id, requestBody, authorService);
+                                }
+                            } catch (NumberFormatException e) { 
+                                jsonResponse = "{\"error\":\"Invalid Author ID\"}"; 
+                            }
                         }
                     } 
                     
@@ -204,6 +212,12 @@ public class App {
                             } catch (NumberFormatException e) { 
                                 jsonResponse = "{\"error\":\"Invalid Item ID\"}"; 
                             }
+                        }
+                    } else if (path.startsWith("/sales/buyer/")) {
+                        if ("GET".equals(method)) {
+                            String buyerName = path.substring(13); // Remove "/sales/buyer/"
+                            System.out.println("GET: Fetching sales for buyer: " + buyerName);
+                            jsonResponse = convertSalesToJson(saleService.getSalesByBuyer(buyerName));
                         }
                     } else if (path.startsWith("/sales/")) {
                         try {

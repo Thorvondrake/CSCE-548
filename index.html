@@ -47,8 +47,7 @@
 </head>
 <body>
     <div class="header">
-        <h1> Nocturne Archive Management Portal</h1>
-        <p>Complete CRUD Operations for All Entities | Project 3 Client Interface</p>
+        <h1> Nocturne Archive</h1>
         <div class="summary" id="systemSummary">
             <h3>System Overview</h3>
             <p id="summaryText">Loading system data...</p>
@@ -74,6 +73,10 @@
                 <div class="control-group">
                     <input type="number" id="authorId" placeholder="Author ID">
                     <button onclick="fetchAuthor()">Get Single Author</button>
+                </div>
+                <div class="control-group">
+                    <input type="text" id="authorNationality" placeholder="Nationality" style="width: 150px;">
+                    <button class="secondary" onclick="fetchAuthorsByNationality()">Get by Nationality</button>
                 </div>
                 <button class="secondary" onclick="countAuthors()">Count Authors</button>
             </div>
@@ -231,6 +234,10 @@
                 <div class="control-group">
                     <input type="number" id="saleItemId" placeholder="Item ID">
                     <button class="secondary" onclick="fetchSalesForItem()">Get Sales for Item</button>
+                </div>
+                <div class="control-group">
+                    <input type="text" id="saleBuyerName" placeholder="Buyer Name" style="width: 200px;">
+                    <button class="secondary" onclick="fetchSalesByBuyer()">Get Sales by Buyer</button>
                 </div>
             </div>
             
@@ -399,6 +406,36 @@
                 showStatus(`Author count: ${systemData.authors}`, 'success');
             } catch (error) {
                 showStatus('Failed to count authors', 'error');
+            }
+        }
+
+        async function fetchAuthorsByNationality() {
+            const nationality = document.getElementById('authorNationality').value;
+            if (!nationality) {
+                showStatus("Please enter a nationality", 'error');
+                return;
+            }
+            
+            showStatus(`Looking up authors by nationality: ${nationality}...`, 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/authors/nationality/${encodeURIComponent(nationality)}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Authors by nationality data:", data);
+                
+                renderAuthors(data);
+                showStatus(`Found ${Array.isArray(data) ? data.length : 0} authors from ${nationality}`, 'success');
+                
+            } catch (error) {
+                console.error("Authors by nationality fetch error:", error);
+                showStatus(`Failed to fetch authors by nationality: ${error.message}`, 'error');
             }
         }
 
@@ -783,6 +820,36 @@
             } catch (error) {
                 console.error("Revenue calculation error:", error);
                 showStatus(`Failed to calculate revenue: ${error.message}`, 'error');
+            }
+        }
+
+        async function fetchSalesByBuyer() {
+            const buyerName = document.getElementById('saleBuyerName').value;
+            if (!buyerName) {
+                showStatus("Please enter a buyer name", 'error');
+                return;
+            }
+            
+            showStatus(`Looking up sales by buyer: ${buyerName}...`, 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/sales/buyer/${encodeURIComponent(buyerName)}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("Sales by buyer data:", data);
+                
+                renderSales(data);
+                showStatus(`Found ${Array.isArray(data) ? data.length : 0} sales by ${buyerName}`, 'success');
+                
+            } catch (error) {
+                console.error("Sales by buyer fetch error:", error);
+                showStatus(`Failed to fetch sales by buyer: ${error.message}`, 'error');
             }
         }
 

@@ -43,6 +43,13 @@ public class SaleService {
     }
 
     /**
+     * GET /sales/buyer/{buyerName} - Get sales for specific buyer
+     */
+    public List<Sale> getSalesByBuyer(String buyerName) {
+        return business.findSalesByBuyer(buyerName);
+    }
+
+    /**
      * GET /sales/revenue - Get total revenue
      */
     public double getTotalRevenue() {

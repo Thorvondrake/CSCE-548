@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,6 +15,15 @@ public class AuthorBusinessLogic {
 
     public Author findAuthorById(int id) {
         return db.getAuthorById(id);
+    }
+
+    public List<Author> findAuthorsByNationality(String nationality) {
+        // Business rule: Validate nationality is not null or empty
+        if (nationality == null || nationality.trim().isEmpty()) {
+            System.out.println("Error: Nationality cannot be empty.");
+            return new ArrayList<>();
+        }
+        return db.getAuthorsByNationality(nationality.trim());
     }
 
     public void registerNewAuthor(String fullName, String nationality, int birthYear) {

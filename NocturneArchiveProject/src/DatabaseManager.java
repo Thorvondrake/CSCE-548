@@ -7,16 +7,16 @@ public class DatabaseManager {
     // If it doesn't find one (like on your laptop), it defaults to your local MySQL.
     private final String url = System.getenv("DB_URL") != null 
                          ? System.getenv("DB_URL") 
-                         : "mysql://avnadmin:AVNS_lqHtEMxKIOMm3uWH_GY@mysql-nocture-archive-nocturne-archive.a.aivencloud.com:11433/defaultdb?ssl-mode=REQUIRED";
+                         : "jdbc:mysql://mysql-nocture-archive-nocturne-archive.a.aivencloud.com:11433/defaultdb?ssl-mode=REQUIRED";
 
     private final String username = System.getenv("DB_USER") != null 
                               ? System.getenv("DB_USER") 
-                              : "nocturne_admin";
+                              : "avnadmin";
 
     // Use System.getenv to pull the secret from Render's environment
     private final String password = System.getenv("DB_PASSWORD") != null 
                             ? System.getenv("DB_PASSWORD") 
-                            : "Qazwsx123";
+                            : "AVNS_lqHtEMxKIOMm3uWH_GY";
 
     // Helper method to get a connection
     private Connection getConnection() throws SQLException {
@@ -169,7 +169,27 @@ public class DatabaseManager {
         }
         return null;
     }
-
+    public List<Author> getAuthorsByNationality(String nationality) {
+        List<Author> authors = new ArrayList<>();
+        String sql = "SELECT AuthorID, FullName, Nationality, BirthYear FROM Authors WHERE Nationality = ?";
+        
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, nationality);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    authors.add(new Author(
+                        rs.getInt("AuthorID"),
+                        rs.getString("FullName"),
+                        rs.getString("Nationality"),
+                        rs.getInt("BirthYear")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error getting authors by nationality: " + e.getMessage());
+        }
+        return authors;
+    }
     // --- UPDATE Author ---
     public void updateAuthor(int authorId, String fullName, String nationality, int birthYear) {
         String sql = "UPDATE Authors SET FullName = ?, Nationality = ?, BirthYear = ? WHERE AuthorID = ?";
@@ -347,6 +367,29 @@ public class DatabaseManager {
             System.err.println("Database error: " + e.getMessage()); 
         }
         return null;
+    }
+
+    public List<Sale> getSalesByBuyer(String buyerName) {
+        List<Sale> sales = new ArrayList<>();
+        String sql = "SELECT SaleID, ItemID, Sale_Date, Final_Price, Buyer_Name FROM Sales_Log WHERE Buyer_Name = ?";
+        
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, buyerName);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    sales.add(new Sale(
+                        rs.getInt("SaleID"),
+                        rs.getInt("ItemID"),
+                        rs.getDate("Sale_Date"),
+                        rs.getDouble("Final_Price"),
+                        rs.getString("Buyer_Name")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error getting sales by buyer: " + e.getMessage());
+        }
+        return sales;
     }
 
     // --- UPDATE Sale ---
