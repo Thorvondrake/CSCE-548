@@ -371,7 +371,7 @@ public class DatabaseManager {
 
     public List<Sale> getSalesByBuyer(String buyerName) {
         List<Sale> sales = new ArrayList<>();
-        String sql = "SELECT SaleID, ItemID, Sale_Date, Final_Price, Buyer_Name FROM Sales_Log WHERE Buyer_Name = ?";
+        String sql = "SELECT SaleID, ItemID, Sale_Date, Final_Price, Buyer_Name FROM Sales_Log WHERE LOWER(TRIM(Buyer_Name)) = LOWER(TRIM(?))";
         
         try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, buyerName);
