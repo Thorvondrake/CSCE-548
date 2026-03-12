@@ -76,7 +76,9 @@ public class SafeServiceTestRunner {
             System.out.println("Sample inventory: " + firstBook.title + " (" + firstBook.condition + ") - $" + firstBook.price);
             
             BookItem retrievedBook = bookService.getBook(firstBook.id);
-            System.out.println("Successfully retrieved book by ID");
+            if (retrievedBook != null) {
+                System.out.println("Successfully retrieved book by ID: " + retrievedBook.title);
+            }
         }
         
         // Test Sales Service (READ ONLY)

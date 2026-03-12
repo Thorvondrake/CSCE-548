@@ -55,6 +55,25 @@ public class App {
                         continue;
                     }
 
+                    // Read headers to get Content-Length for POST/PUT requests
+                    String contentLengthHeader = null;
+                    String line;
+                    while ((line = in.readLine()) != null && !line.isEmpty()) {
+                        if (line.toLowerCase().startsWith("content-length:")) {
+                            contentLengthHeader = line.split(":")[1].trim();
+                        }
+                    }
+
+                    // Read request body for POST and PUT requests
+                    String requestBody = "";
+                    if (("POST".equals(method) || "PUT".equals(method)) && contentLengthHeader != null) {
+                        int contentLength = Integer.parseInt(contentLengthHeader);
+                        char[] body = new char[contentLength];
+                        in.read(body);
+                        requestBody = new String(body);
+                        System.out.println("Request body: " + requestBody);
+                    }
+
                     // --- COMPLETE SERVICE LAYER ROUTING FOR ALL 4 ENTITIES ---
                     String jsonResponse = "[]";
                     
@@ -65,14 +84,24 @@ public class App {
                     
                     // ===== AUTHORS ENDPOINTS =====
                     else if (path.equals("/authors")) {
-                        System.out.println("Fetching all authors...");
-                        jsonResponse = convertAuthorsToJson(authorService.getAuthors());
+                        if ("GET".equals(method)) {
+                            System.out.println("GET: Fetching all authors...");
+                            jsonResponse = convertAuthorsToJson(authorService.getAuthors());
+                        } else if ("POST".equals(method)) {
+                            System.out.println("POST: Creating new author...");
+                            jsonResponse = handleCreateAuthor(requestBody, authorService);
+                        }
                     } else if (path.startsWith("/authors/")) {
                         try {
                             int id = Integer.parseInt(path.substring(9));
-                            System.out.println("Fetching author with ID: " + id);
-                            Author author = authorService.getAuthor(id);
-                            jsonResponse = (author != null) ? convertAuthorToJson(author) : "{}";
+                            if ("GET".equals(method)) {
+                                System.out.println("GET: Fetching author with ID: " + id);
+                                Author author = authorService.getAuthor(id);
+                                jsonResponse = (author != null) ? convertAuthorToJson(author) : "{}";
+                            } else if ("PUT".equals(method)) {
+                                System.out.println("PUT: Updating author with ID: " + id);
+                                jsonResponse = handleUpdateAuthor(id, requestBody, authorService);
+                            }
                         } catch (NumberFormatException e) { 
                             jsonResponse = "{\"error\":\"Invalid Author ID\"}"; 
                         }
@@ -80,40 +109,72 @@ public class App {
                     
                     // ===== TITLES ENDPOINTS =====
                     else if (path.equals("/titles")) {
-                        System.out.println("Fetching all titles...");
-                        jsonResponse = convertTitlesToJson(titleService.getTitles());
+                        if ("GET".equals(method)) {
+                            System.out.println("GET: Fetching all titles...");
+                            jsonResponse = convertTitlesToJson(titleService.getTitles());
+                        } else if ("POST".equals(method)) {
+                            System.out.println("POST: Creating new title...");
+                            jsonResponse = handleCreateTitle(requestBody, titleService);
+                        }
                     } else if (path.startsWith("/titles/author/")) {
-                        try {
-                            int authorId = Integer.parseInt(path.substring(15));
-                            System.out.println("Fetching titles by author ID: " + authorId);
-                            jsonResponse = convertTitlesToJson(titleService.getTitlesByAuthor(authorId));
-                        } catch (NumberFormatException e) { 
-                            jsonResponse = "{\"error\":\"Invalid Author ID\"}"; 
+                        if ("GET".equals(method)) {
+                            try {
+                                int authorId = Integer.parseInt(path.substring(15));
+                                System.out.println("GET: Fetching titles by author ID: " + authorId);
+                                jsonResponse = convertTitlesToJson(titleService.getTitlesByAuthor(authorId));
+                            } catch (NumberFormatException e) { 
+                                jsonResponse = "{\"error\":\"Invalid Author ID\"}"; 
+                            }
                         }
                     } else if (path.startsWith("/titles/")) {
                         try {
                             int id = Integer.parseInt(path.substring(8));
-                            System.out.println("Fetching title with ID: " + id);
-                            Title title = titleService.getTitle(id);
-                            jsonResponse = (title != null) ? convertTitleToJson(title) : "{}";
+                            if ("GET".equals(method)) {
+                                System.out.println("GET: Fetching title with ID: " + id);
+                                Title title = titleService.getTitle(id);
+                                jsonResponse = (title != null) ? convertTitleToJson(title) : "{}";
+                            } else if ("PUT".equals(method)) {
+                                System.out.println("PUT: Updating title with ID: " + id);
+                                jsonResponse = handleUpdateTitle(id, requestBody, titleService);
+                            }
                         } catch (NumberFormatException e) { 
                             jsonResponse = "{\"error\":\"Invalid Title ID\"}"; 
                         }
                     } 
                     
-                    // ===== INVENTORY ENDPOINTS (EXISTING) =====
+                    // ===== INVENTORY ENDPOINTS =====
                     else if (path.equals("/inventory")) {
-                        System.out.println("Fetching all inventory...");
-                        jsonResponse = convertBooksToJson(bookService.getArchive());
+                        if ("GET".equals(method)) {
+                            System.out.println("GET: Fetching all inventory...");
+                            jsonResponse = convertBooksToJson(bookService.getArchive());
+                        } else if ("POST".equals(method)) {
+                            System.out.println("POST: Creating new inventory item...");
+                            jsonResponse = handleCreateInventory(requestBody, bookService);
+                        }
                     } else if (path.equals("/signed")) {
-                        System.out.println("Fetching signed books...");
-                        jsonResponse = convertBooksToJson(bookService.getSignedArchive());
+                        if ("GET".equals(method)) {
+                            System.out.println("GET: Fetching signed books...");
+                            jsonResponse = convertBooksToJson(bookService.getSignedArchive());
+                        }
+                    } else if (path.startsWith("/inventory/") && path.contains("/price")) {
+                        // Handle price update: PUT /inventory/{id}/price
+                        try {
+                            int id = Integer.parseInt(path.substring(11, path.indexOf("/price")));
+                            if ("PUT".equals(method)) {
+                                System.out.println("PUT: Updating price for item ID: " + id);
+                                jsonResponse = handleUpdateBookPrice(id, requestBody, bookService);
+                            }
+                        } catch (NumberFormatException e) { 
+                            jsonResponse = "{\"error\":\"Invalid Item ID\"}"; 
+                        }
                     } else if (path.startsWith("/inventory/")) {
                         try {
                             int id = Integer.parseInt(path.substring(11));
-                            System.out.println("Fetching book with ID: " + id);
-                            BookItem item = bookService.getBook(id);
-                            jsonResponse = (item != null) ? convertBookToJson(item) : "{}";
+                            if ("GET".equals(method)) {
+                                System.out.println("GET: Fetching book with ID: " + id);
+                                BookItem item = bookService.getBook(id);
+                                jsonResponse = (item != null) ? convertBookToJson(item) : "{}";
+                            }
                         } catch (NumberFormatException e) { 
                             jsonResponse = "{\"error\":\"Invalid Book ID\"}"; 
                         }
@@ -121,26 +182,40 @@ public class App {
                     
                     // ===== SALES ENDPOINTS =====
                     else if (path.equals("/sales")) {
-                        System.out.println("Fetching all sales...");
-                        jsonResponse = convertSalesToJson(saleService.getSales());
+                        if ("GET".equals(method)) {
+                            System.out.println("GET: Fetching all sales...");
+                            jsonResponse = convertSalesToJson(saleService.getSales());
+                        } else if ("POST".equals(method)) {
+                            System.out.println("POST: Creating new sale...");
+                            jsonResponse = handleCreateSale(requestBody, saleService);
+                        }
                     } else if (path.equals("/sales/revenue")) {
-                        System.out.println("Calculating total revenue...");
-                        double revenue = saleService.getTotalRevenue();
-                        jsonResponse = "{\"totalRevenue\":" + revenue + ",\"currency\":\"USD\"}";
+                        if ("GET".equals(method)) {
+                            System.out.println("GET: Calculating total revenue...");
+                            double revenue = saleService.getTotalRevenue();
+                            jsonResponse = "{\"totalRevenue\":" + revenue + ",\"currency\":\"USD\"}";
+                        }
                     } else if (path.startsWith("/sales/item/")) {
-                        try {
-                            int itemId = Integer.parseInt(path.substring(12));
-                            System.out.println("Fetching sales for item ID: " + itemId);
-                            jsonResponse = convertSalesToJson(saleService.getSalesForItem(itemId));
-                        } catch (NumberFormatException e) { 
-                            jsonResponse = "{\"error\":\"Invalid Item ID\"}"; 
+                        if ("GET".equals(method)) {
+                            try {
+                                int itemId = Integer.parseInt(path.substring(12));
+                                System.out.println("GET: Fetching sales for item ID: " + itemId);
+                                jsonResponse = convertSalesToJson(saleService.getSalesForItem(itemId));
+                            } catch (NumberFormatException e) { 
+                                jsonResponse = "{\"error\":\"Invalid Item ID\"}"; 
+                            }
                         }
                     } else if (path.startsWith("/sales/")) {
                         try {
                             int id = Integer.parseInt(path.substring(7));
-                            System.out.println("Fetching sale with ID: " + id);
-                            Sale sale = saleService.getSale(id);
-                            jsonResponse = (sale != null) ? convertSaleToJson(sale) : "{}";
+                            if ("GET".equals(method)) {
+                                System.out.println("GET: Fetching sale with ID: " + id);
+                                Sale sale = saleService.getSale(id);
+                                jsonResponse = (sale != null) ? convertSaleToJson(sale) : "{}";
+                            } else if ("PUT".equals(method)) {
+                                System.out.println("PUT: Updating sale with ID: " + id);
+                                jsonResponse = handleUpdateSale(id, requestBody, saleService);
+                            }
                         } catch (NumberFormatException e) { 
                             jsonResponse = "{\"error\":\"Invalid Sale ID\"}"; 
                         }
@@ -248,6 +323,220 @@ public class App {
             }
         }
         scanner.close(); */
+    }
+
+    // ===================================================================
+    // REQUEST HANDLERS FOR CREATE AND UPDATE OPERATIONS
+    // ===================================================================
+    
+    private static String handleCreateAuthor(String requestBody, AuthorService authorService) {
+        try {
+            // Simple JSON parsing for author creation
+            String fullName = extractJsonField(requestBody, "fullName");
+            String nationality = extractJsonField(requestBody, "nationality");
+            int birthYear = Integer.parseInt(extractJsonField(requestBody, "birthYear"));
+            
+            String result = authorService.postAuthor(fullName, nationality, birthYear);
+            System.out.println("Author creation result: " + result);
+            
+            // Return updated authors list
+            return convertAuthorsToJson(authorService.getAuthors());
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number format in author data: " + e.getMessage());
+            return "{\"error\":\"Invalid number format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error creating author: " + e.getMessage());
+            return "{\"error\":\"Failed to create author: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    private static String handleUpdateAuthor(int id, String requestBody, AuthorService authorService) {
+        try {
+            String fullName = extractJsonField(requestBody, "fullName");
+            String nationality = extractJsonField(requestBody, "nationality");
+            int birthYear = Integer.parseInt(extractJsonField(requestBody, "birthYear"));
+            
+            String result = authorService.putAuthor(id, fullName, nationality, birthYear);
+            System.out.println("Author update result: " + result);
+            
+            return convertAuthorsToJson(authorService.getAuthors());
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number format in author update: " + e.getMessage());
+            return "{\"error\":\"Invalid number format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error updating author: " + e.getMessage());
+            return "{\"error\":\"Failed to update author: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    private static String handleCreateTitle(String requestBody, TitleService titleService) {
+        try {
+            int authorId = Integer.parseInt(extractJsonField(requestBody, "authorId"));
+            String titleName = extractJsonField(requestBody, "titleName");
+            String genre = extractJsonField(requestBody, "genre");
+            int originalPublicationYear = Integer.parseInt(extractJsonField(requestBody, "originalPublicationYear"));
+            
+            String result = titleService.postTitle(authorId, titleName, genre, originalPublicationYear);
+            System.out.println("Title creation result: " + result);
+            
+            return convertTitlesToJson(titleService.getTitles());
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number format in title data: " + e.getMessage());
+            return "{\"error\":\"Invalid number format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error creating title: " + e.getMessage());
+            return "{\"error\":\"Failed to create title: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    private static String handleUpdateTitle(int id, String requestBody, TitleService titleService) {
+        try {
+            int authorId = Integer.parseInt(extractJsonField(requestBody, "authorId"));
+            String titleName = extractJsonField(requestBody, "titleName");
+            String genre = extractJsonField(requestBody, "genre");
+            int originalPublicationYear = Integer.parseInt(extractJsonField(requestBody, "originalPublicationYear"));
+            
+            String result = titleService.putTitle(id, authorId, titleName, genre, originalPublicationYear);
+            System.out.println("Title update result: " + result);
+            
+            return convertTitlesToJson(titleService.getTitles());
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number format in title update: " + e.getMessage());
+            return "{\"error\":\"Invalid number format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error updating title: " + e.getMessage());
+            return "{\"error\":\"Failed to update title: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    private static String handleCreateInventory(String requestBody, BookService bookService) {
+        try {
+            int titleId = Integer.parseInt(extractJsonField(requestBody, "titleId"));
+            String condition = extractJsonField(requestBody, "condition");
+            double price = Double.parseDouble(extractJsonField(requestBody, "price"));
+            boolean signed = Boolean.parseBoolean(extractJsonField(requestBody, "signed"));
+            
+            String result = bookService.postBook(titleId, condition, price, signed);
+            System.out.println("Book creation result: " + result);
+            
+            return convertBooksToJson(bookService.getArchive());
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number format in inventory data: " + e.getMessage());
+            return "{\"error\":\"Invalid number format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error creating inventory item: " + e.getMessage());
+            return "{\"error\":\"Failed to create inventory item: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    private static String handleUpdateBookPrice(int id, String requestBody, BookService bookService) {
+        try {
+            double price = Double.parseDouble(extractJsonField(requestBody, "price"));
+            
+            String result = bookService.putPriceChange(id, price);
+            System.out.println("Price update result: " + result);
+            
+            return convertBooksToJson(bookService.getArchive());
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid price format: " + e.getMessage());
+            return "{\"error\":\"Invalid price format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error updating book price: " + e.getMessage());
+            return "{\"error\":\"Failed to update book price: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    private static String handleCreateSale(String requestBody, SaleService saleService) {
+        try {
+            int itemId = Integer.parseInt(extractJsonField(requestBody, "itemId"));
+            double finalPrice = Double.parseDouble(extractJsonField(requestBody, "finalPrice"));
+            String buyerName = extractJsonField(requestBody, "buyerName");
+            
+            String result = saleService.postSale(itemId, finalPrice, buyerName);
+            System.out.println("Sale creation result: " + result);
+            
+            return convertSalesToJson(saleService.getSales());
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number format in sale data: " + e.getMessage());
+            return "{\"error\":\"Invalid number format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error creating sale: " + e.getMessage());
+            return "{\"error\":\"Failed to create sale: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    private static String handleUpdateSale(int id, String requestBody, SaleService saleService) {
+        try {
+            int itemId = Integer.parseInt(extractJsonField(requestBody, "itemId"));
+            String saleDateStr = extractJsonField(requestBody, "saleDate");
+            double finalPrice = Double.parseDouble(extractJsonField(requestBody, "finalPrice"));
+            String buyerName = extractJsonField(requestBody, "buyerName");
+            
+            // Convert ISO string to java.sql.Date
+            java.sql.Date saleDate;
+            if (saleDateStr != null && !saleDateStr.isEmpty()) {
+                try {
+                    // Parse ISO date string and convert to sql.Date
+                    String dateOnly = saleDateStr.substring(0, 10); // Get just YYYY-MM-DD part
+                    saleDate = java.sql.Date.valueOf(dateOnly);
+                } catch (Exception e) {
+                    // If parsing fails, use current date
+                    saleDate = new java.sql.Date(System.currentTimeMillis());
+                }
+            } else {
+                saleDate = new java.sql.Date(System.currentTimeMillis());
+            }
+            
+            String result = saleService.putSale(id, itemId, saleDate, finalPrice, buyerName);
+            System.out.println("Sale update result: " + result);
+            
+            return convertSalesToJson(saleService.getSales());
+            
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid data format in sale update: " + e.getMessage());
+            return "{\"error\":\"Invalid data format: " + e.getMessage() + "\"}";
+        } catch (Exception e) {
+            System.err.println("Error updating sale: " + e.getMessage());
+            return "{\"error\":\"Failed to update sale: " + e.getMessage() + "\"}";
+        }
+    }
+    
+    // Simple JSON field extraction (basic implementation)
+    private static String extractJsonField(String json, String fieldName) {
+        String pattern = "\"" + fieldName + "\":";
+        int start = json.indexOf(pattern);
+        if (start == -1) return "";
+        
+        start += pattern.length();
+        
+        // Skip whitespace and quotes
+        while (start < json.length() && (json.charAt(start) == ' ' || json.charAt(start) == '\"')) {
+            start++;
+        }
+        
+        int end = start;
+        boolean inQuotes = json.charAt(start - 1) == '\"';
+        
+        if (inQuotes) {
+            // Find closing quote
+            while (end < json.length() && json.charAt(end) != '\"') {
+                end++;
+            }
+        } else {
+            // Find comma or closing brace
+            while (end < json.length() && json.charAt(end) != ',' && json.charAt(end) != '}') {
+                end++;
+            }
+        }
+        
+        return json.substring(start, end).trim();
     }
 
     // ===================================================================
