@@ -27,6 +27,8 @@
         button.secondary:hover { background: #5b21b6; }
         button.success { background: #10b981; }
         button.success:hover { background: #059669; }
+        button.warning { background: #f59e0b; }
+        button.warning:hover { background: #d97706; }
         
         input { background: #334155; border: 1px solid #475569; color: white; padding: 0.75rem; border-radius: 6px; width: 120px; }
         
@@ -54,23 +56,49 @@
     </div>
 
     <div class="tabs">
-        <button class="tab active" onclick="showTab('authors')">📚 Authors</button>
-        <button class="tab" onclick="showTab('titles')">📖 Titles</button>
-        <button class="tab" onclick="showTab('inventory')">💎 Inventory</button>
-        <button class="tab" onclick="showTab('sales')">💰 Sales</button>
+        <button class="tab active" onclick="showTab('authors')">Authors</button>
+        <button class="tab" onclick="showTab('titles')">Titles</button>
+        <button class="tab" onclick="showTab('inventory')">Inventory</button>
+        <button class="tab" onclick="showTab('sales')">Sales</button>
     </div>
 
     <div class="card">
         <!-- AUTHORS SECTION -->
         <div id="authors" class="entity-section active">
             <h2>Authors Management</h2>
+            
+            <!-- READ OPERATIONS -->
+            <h3>Read Operations</h3>
             <div class="controls">
-                <button onclick="fetchAuthors('all')">📋 Get All Authors</button>
+                <button onclick="fetchAuthors('all')">Get All Authors</button>
                 <div class="control-group">
                     <input type="number" id="authorId" placeholder="Author ID">
-                    <button onclick="fetchAuthor()">🔍 Get Single Author</button>
+                    <button onclick="fetchAuthor()">Get Single Author</button>
                 </div>
-                <button class="secondary" onclick="countAuthors()">📊 Count Authors</button>
+                <button class="secondary" onclick="countAuthors()">Count Authors</button>
+            </div>
+            
+            <!-- CREATE OPERATIONS -->
+            <h3>Create New Author</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="text" id="newAuthorName" placeholder="Full Name" style="width: 200px;">
+                    <input type="text" id="newAuthorNationality" placeholder="Nationality" style="width: 150px;">
+                    <input type="number" id="newAuthorBirthYear" placeholder="Birth Year">
+                    <button class="success" onclick="createAuthor()">Create Author</button>
+                </div>
+            </div>
+            
+            <!-- UPDATE OPERATIONS -->
+            <h3>Update Existing Author</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="number" id="updateAuthorId" placeholder="Author ID">
+                    <input type="text" id="updateAuthorName" placeholder="Full Name" style="width: 200px;">
+                    <input type="text" id="updateAuthorNationality" placeholder="Nationality" style="width: 150px;">
+                    <input type="number" id="updateAuthorBirthYear" placeholder="Birth Year">
+                    <button class="warning" onclick="updateAuthor()">Update Author</button>
+                </div>
             </div>
             <table id="authorsTable">
                 <thead>
@@ -83,17 +111,45 @@
         <!-- TITLES SECTION -->
         <div id="titles" class="entity-section">
             <h2>Titles Management</h2>
+            
+            <!-- READ OPERATIONS -->
+            <h3>Read Operations</h3>
             <div class="controls">
-                <button onclick="fetchTitles('all')">📋 Get All Titles</button>
+                <button onclick="fetchTitles('all')">Get All Titles</button>
                 <div class="control-group">
                     <input type="number" id="titleId" placeholder="Title ID">
-                    <button onclick="fetchTitle()">🔍 Get Single Title</button>
+                    <button onclick="fetchTitle()">Get Single Title</button>
                 </div>
                 <div class="control-group">
                     <input type="number" id="titleAuthorId" placeholder="Author ID">
-                    <button class="secondary" onclick="fetchTitlesByAuthor()">👤 Get Titles by Author</button>
+                    <button class="secondary" onclick="fetchTitlesByAuthor()">Get Titles by Author</button>
                 </div>
-                <button class="success" onclick="countTitles()">📊 Count Titles</button>
+                <button class="success" onclick="countTitles()">Count Titles</button>
+            </div>
+            
+            <!-- CREATE OPERATIONS -->
+            <h3>Create New Title</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="number" id="newTitleAuthorId" placeholder="Author ID">
+                    <input type="text" id="newTitleName" placeholder="Title Name" style="width: 250px;">
+                    <input type="text" id="newTitleGenre" placeholder="Genre" style="width: 150px;">
+                    <input type="number" id="newTitleYear" placeholder="Publication Year">
+                    <button class="success" onclick="createTitle()">Create Title</button>
+                </div>
+            </div>
+            
+            <!-- UPDATE OPERATIONS -->
+            <h3>Update Existing Title</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="number" id="updateTitleId" placeholder="Title ID">
+                    <input type="number" id="updateTitleAuthorId" placeholder="Author ID">
+                    <input type="text" id="updateTitleName" placeholder="Title Name" style="width: 250px;">
+                    <input type="text" id="updateTitleGenre" placeholder="Genre" style="width: 150px;">
+                    <input type="number" id="updateTitleYear" placeholder="Publication Year">
+                    <button class="warning" onclick="updateTitle()">Update Title</button>
+                </div>
             </div>
             <table id="titlesTable">
                 <thead>
@@ -106,14 +162,50 @@
         <!-- INVENTORY SECTION -->
         <div id="inventory" class="entity-section">
             <h2>Inventory Management</h2>
+            
+            <!-- READ OPERATIONS -->
+            <h3>Read Operations</h3>
             <div class="controls">
-                <button onclick="fetchInventory('all')">📋 Get All Inventory</button>
-                <button class="secondary" onclick="fetchInventory('signed')">✨ Get Signed Books</button>
+                <button onclick="fetchInventory('all')">Get All Inventory</button>
+                <button class="secondary" onclick="fetchInventory('signed')">Get Signed Books</button>
                 <div class="control-group">
                     <input type="number" id="bookId" placeholder="Item ID">
-                    <button onclick="fetchSingleBook()">🔍 Get Single Item</button>
+                    <button onclick="fetchSingleBook()">Get Single Item</button>
                 </div>
-                <button class="success" onclick="countInventory()">📊 Count Items</button>
+                <button class="success" onclick="countInventory()">Count Items</button>
+            </div>
+            
+            <!-- CREATE OPERATIONS -->
+            <h3>Create New Inventory Item</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="number" id="newBookTitleId" placeholder="Title ID">
+                    <select id="newBookCondition" style="width: 120px; padding: 0.75rem; background: #334155; color: white; border: 1px solid #475569; border-radius: 6px;">
+                        <option value="">Select Condition</option>
+                        <option value="Mint">Mint</option>
+                        <option value="Fine">Fine</option>
+                        <option value="Very Good">Very Good</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                    <input type="number" id="newBookPrice" placeholder="Price" step="0.01">
+                    <select id="newBookSigned" style="width: 100px; padding: 0.75rem; background: #334155; color: white; border: 1px solid #475569; border-radius: 6px;">
+                        <option value="false">Not Signed</option>
+                        <option value="true">Signed</option>
+                    </select>
+                    <button class="success" onclick="createBookItem()">Create Item</button>
+                </div>
+            </div>
+            
+            <!-- UPDATE OPERATIONS -->
+            <h3>Update Existing Item</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="number" id="updateBookId" placeholder="Item ID">
+                    <input type="number" id="updateBookPrice" placeholder="New Price" step="0.01">
+                    <button class="warning" onclick="updateBookItem()">Update Price</button>
+                </div>
             </div>
             <table id="inventoryTable">
                 <thead>
@@ -126,16 +218,42 @@
         <!-- SALES SECTION -->
         <div id="sales" class="entity-section">
             <h2>Sales Management</h2>
+            
+            <!-- READ OPERATIONS -->
+            <h3>Read Operations</h3>
             <div class="controls">
-                <button onclick="fetchSales('all')">📋 Get All Sales</button>
-                <button class="success" onclick="calculateRevenue()">💵 Get Total Revenue</button>
+                <button onclick="fetchSales('all')">Get All Sales</button>
+                <button class="success" onclick="calculateRevenue()">Get Total Revenue</button>
                 <div class="control-group">
                     <input type="number" id="saleId" placeholder="Sale ID">
-                    <button onclick="fetchSale()">🔍 Get Single Sale</button>
+                    <button onclick="fetchSale()">Get Single Sale</button>
                 </div>
                 <div class="control-group">
                     <input type="number" id="saleItemId" placeholder="Item ID">
-                    <button class="secondary" onclick="fetchSalesForItem()">📦 Get Sales for Item</button>
+                    <button class="secondary" onclick="fetchSalesForItem()">Get Sales for Item</button>
+                </div>
+            </div>
+            
+            <!-- CREATE OPERATIONS -->
+            <h3>Create New Sale</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="number" id="newSaleItemId" placeholder="Item ID">
+                    <input type="number" id="newSaleFinalPrice" placeholder="Final Price" step="0.01">
+                    <input type="text" id="newSaleBuyerName" placeholder="Buyer Name" style="width: 200px;">
+                    <button class="success" onclick="createSale()">Record Sale</button>
+                </div>
+            </div>
+            
+            <!-- UPDATE OPERATIONS -->
+            <h3>Update Existing Sale</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <input type="number" id="updateSaleId" placeholder="Sale ID">
+                    <input type="number" id="updateSaleItemId" placeholder="Item ID">
+                    <input type="number" id="updateSaleFinalPrice" placeholder="Final Price" step="0.01">
+                    <input type="text" id="updateSaleBuyerName" placeholder="Buyer Name" style="width: 200px;">
+                    <button class="warning" onclick="updateSale()">Update Sale</button>
                 </div>
             </div>
             <table id="salesTable">
@@ -188,7 +306,7 @@
 
         // System summary update
         function updateSystemSummary() {
-            const summaryText = `📊 Authors: ${systemData.authors} | 📖 Titles: ${systemData.titles} | 💎 Inventory: ${systemData.inventory} | 💰 Sales: ${systemData.sales} | 💵 Revenue: $${systemData.revenue.toFixed(2)}`;
+            const summaryText = `Authors: ${systemData.authors} | Titles: ${systemData.titles} | Inventory: ${systemData.inventory} | Sales: ${systemData.sales} | Revenue: $${systemData.revenue.toFixed(2)}`;
             document.getElementById('summaryText').textContent = summaryText;
         }
 
@@ -524,7 +642,7 @@
                     <td>${book.title || 'N/A'}</td>
                     <td>${book.condition || 'N/A'}</td>
                     <td>$${book.price ? book.price.toFixed(2) : '0.00'}</td>
-                    <td>${book.isSigned ? "✨ Yes" : "No"}</td>
+                    <td>${book.isSigned ? "Yes" : "No"}</td>
                 </tr>
             `).join('');
         }
@@ -717,5 +835,8 @@
             console.log("Portal initialization complete");
         });
     </script>
+    
+    <!-- External JavaScript for CREATE/UPDATE Operations -->
+    <script src="crud-operations.js"></script>
 </body>
 </html>
