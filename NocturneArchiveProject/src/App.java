@@ -95,6 +95,11 @@ public class App {
                         if (path.startsWith("/authors/nationality/")) {
                             if ("GET".equals(method)) {
                                 String nationality = path.substring(21); // Remove "/authors/nationality/" 
+                                try {
+                                    nationality = URLDecoder.decode(nationality, "UTF-8");
+                                } catch (Exception e) {
+                                    System.err.println("Error decoding nationality: " + e.getMessage());
+                                }
                                 System.out.println("GET: Fetching authors by nationality: " + nationality);
                                 jsonResponse = convertAuthorsToJson(authorService.getAuthorsByNationality(nationality));
                             }
@@ -216,6 +221,11 @@ public class App {
                     } else if (path.startsWith("/sales/buyer/")) {
                         if ("GET".equals(method)) {
                             String buyerName = path.substring(13); // Remove "/sales/buyer/"
+                            try {
+                                buyerName = URLDecoder.decode(buyerName, "UTF-8");
+                            } catch (Exception e) {
+                                System.err.println("Error decoding buyer name: " + e.getMessage());
+                            }
                             System.out.println("GET: Fetching sales for buyer: " + buyerName);
                             jsonResponse = convertSalesToJson(saleService.getSalesByBuyer(buyerName));
                         }
