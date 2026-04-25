@@ -13,7 +13,7 @@ public class App {
         // Phase 1: Automated Test Evidence for Logs - ALL SERVICES
         System.out.println("=== NOCTURNE ARCHIVE SERVICE: COMPLETE 4-ENTITY TEST ===");
         System.out.println("\n[Testing ALL Service Layers...]");
-        bookService.postBook(1, "Mint", 1500.00, true);
+        //bookService.postBook(1, "Mint", 1500.00, true);
         System.out.println("All 4 service layers initialized and operational.");
         System.out.println("Architecture: Console -> Service -> Business -> Database Manager.");
 
